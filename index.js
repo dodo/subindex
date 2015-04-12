@@ -119,15 +119,17 @@ function ensureIndex(db, idxName) {
   db.hooks.pre(
     { start: '\x00', end: '\xFF' },
     function (change, add, batch) {
-      if (change.type === 'put') {
-        addToIndex(change);
-      } else if (change.type === 'del') {
-        db.get(change.key, function (err, value) {
+      db.get(change.key, function (err, value) {
+        if (err && !err.notFound) return;
+        if (value) {
           emit.call(db, change.key, value, function (valueToIndex) {
             db.indexDb.del(encode([idxName].concat(valueToIndex).concat(change.key)));
           }, options);
-        });
-      }
+        }
+        if (change.type === 'put') {
+          addToIndex(change);
+        }
+      });
     });
 
   var ended = false;

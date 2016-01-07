@@ -77,7 +77,7 @@ db.batch(insertSomeData(), function (err) {
 
 ## API
 
-### db.ensureIndex(indexName, [indexType], [emitFunction], [cb])
+### db.ensureIndex(indexName, [indexType|options], [emitFunction], [cb])
 
 Creates an index for all newly inserted data, as well as any existing data
 
@@ -90,6 +90,9 @@ Creates an index for all newly inserted data, as well as any existing data
        and [jsonquery-engine](https://github.com/eugeneware/jsonquery-engine) to
        index "pairs" of object properties to allow arbitrary object queries with
        a reasonable tradeoff between index size and query performance.
+* `options` (object) - pass optional parameters to the index creation process
+    * `type` (string) - since options replaces the `indexType` argument, this can be used to provide the same value
+    * `reindex` (boolean) - (defaults to true) set this to false to disable reindexing existing data
 * `emitFunction(key, value, emit)` (function) - a function which is used to translate each written
   (or existing object) into an index. The function takes 3 parameters:
     * `key` - the key of the written object to be indexed
@@ -140,7 +143,6 @@ Drops the index `idxName` and calls `cb` when finished.
 
 This is a work in progress, some things to be added soon:
 
-* Don't rebuild the whole index every time the `ensureIndex` is run or make it a parameter.
 * Don't store the object key in the value. Just store null or 0.
 
 ## Contributing

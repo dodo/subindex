@@ -82,11 +82,15 @@ function propertyIndex(prop) {
 }
 
 function ensureIndex(db, idxName) {
-  var idxType, emit, cb;
+  var opts = {}, emit, cb;
   var args = [].slice.call(arguments).slice(2);
   var arg = args.shift();
-  if (arg !== undefined && typeof arg === 'string') {
-    idxType = arg;
+  if (arg !== undefined && (typeof arg === 'string' || typeof arg === 'object')) {
+    if (typeof arg === 'string') {
+      opts.type = arg;
+    } else {
+      opts = arg;
+    }
     arg = args.shift();
   }
 
@@ -103,14 +107,14 @@ function ensureIndex(db, idxName) {
 
   if (emit === undefined) {
     emit = propertyIndex(idxName);
-    idxType = 'property';
+    opts.type = 'property';
   }
-  idxType = idxType || 'unspecified';
+  opts.type = opts.type || 'unspecified';
   cb = cb || noop;
 
   var options = {
     name: idxName,
-    type: idxType,
+    type: opts.type,
     createIndexStream: createIndexStream.bind(null, db, idxName)
   };
   db.indexes[idxName] = options;
@@ -127,6 +131,10 @@ function ensureIndex(db, idxName) {
       }
     });
   });
+
+  if (opts.reindex === false) {
+    return cb();
+  }
 
   var ended = false;
   var count = 0;

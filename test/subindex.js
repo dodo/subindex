@@ -305,9 +305,10 @@ describe('level-index', function() {
       }
     });
 
-    sub.batch(testData());
+    sub.batch(testData(), doQuery);
 
-    process.nextTick(function () {
+    function doQuery(err) {
+      if (err) return done(err);
       sub.getBy('*', ['name', 'name 42'], function (err, data) {
         if (err) return done(err);
         expect(data.key).to.equal(42);
@@ -315,7 +316,7 @@ describe('level-index', function() {
         expect(data.value.num).to.equal(420);
         done();
       });
-    });
+    };
   });
 
   it('should be able to create an indexStream from pairs', function(done) {

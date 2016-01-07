@@ -126,6 +126,25 @@ describe('level-index', function() {
     }
   });
 
+  it('should be able to create an index without reindexing existing data', function(done) {
+    sub = subindex(db);
+
+    sub.batch(testData(), function (err) {
+      if (err) return done(err);
+      sub.ensureIndex('name', {reindex:false}, function (key, value, emit) {
+        if (value.name !== undefined) emit(value.name);
+      }, doQuery);
+    });
+
+    function doQuery(err) {
+      if (err) return done(err);
+      sub.getBy('name', 'name 42', function (err, data) {
+        expect(err.name).to.equal('NotFoundError');
+        done();
+      });
+    }
+  });
+
   it('should be able to keep index clean on data updates', function(done) {
     sub = subindex(db);
 

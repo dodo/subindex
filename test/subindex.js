@@ -126,6 +126,34 @@ describe('level-index', function() {
     }
   });
 
+  it('should be able to keep index clean on data updates', function(done) {
+    sub = subindex(db);
+
+    sub.ensureIndex('name', function (key, value, emit) {
+      if (value.name !== undefined) emit(value.name);
+    });
+
+    sub.batch([
+      {type: 'put', key: 0, value: {name: 'foo'}},
+      {type: 'put', key: 1, value: {name: 'foo'}},
+      {type: 'put', key: 2, value: {name: 'foo'}}
+    ], doUpdate);
+
+    function doUpdate(err) {
+      if (err) return done(err);
+      sub.put(1, {name: 'bar'}, doQuery);
+    }
+
+    function doQuery(err) {
+      if (err) return done(err);
+      sub.getBy('name', 'foo', {limit: 3}, function (err, data) {
+        if (err) return done(err);
+        expect(data.length).to.equal(2);
+        done();
+      });
+    }
+  });
+
   it('should be able to create a property index with no idx function', function(done) {
     sub = subindex(db);
     sub.ensureIndex('name');
